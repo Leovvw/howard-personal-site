@@ -1125,6 +1125,7 @@
     let ticking = false;
     let lastVideoTime = -1;
     let pendingVideoTime = null;
+    const endFramePadding = 0.08;
 
     function updateVideoScrub() {
       ticking = false;
@@ -1135,7 +1136,8 @@
       root.style.setProperty('--scroll-progress', progress.toFixed(4));
 
       if (!scrollVideo || reduceMotion.matches || !videoReady || !scrollVideo.duration) return;
-      const nextTime = progress * scrollVideo.duration;
+      const scrubDuration = Math.max(0, scrollVideo.duration - endFramePadding);
+      const nextTime = progress * scrubDuration;
       if (Math.abs(nextTime - lastVideoTime) < 0.035) return;
       pendingVideoTime = nextTime;
       if (scrollVideo.seeking) return;
