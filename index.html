@@ -1,0 +1,1273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>个人品牌展示｜服务能力与作品</title>
+  <meta name="description" content="面向个人品牌展示的单页滚动网站，集中呈现服务能力、代表作品与合作入口。">
+  <style>
+    /* ─────────────────────────────────────────────────────────────────────────
+     * design-systems/default/tokens.css
+     *
+     * Structured token bindings for "Neutral Modern" — the canonical
+     * starter design system. This file is the *machine-readable* form of
+     * the values described in `DESIGN.md`. Agents are expected to paste
+     * the `:root { … }` block verbatim into the first `<style>` of every
+     * artifact they generate against this design system, then reference
+     * tokens via `var(--name)` from then on.
+     *
+     * Why this file exists:
+     *   DESIGN.md gives humans context ("Accent #2F6FEB — primary CTAs"),
+     *   but agents have to translate prose names like "Accent" into the
+     *   standard token names the lint enforces (`--accent`). That
+     *   translation is where token misuse happens. This file pre-translates
+     *   the brand once, so agents copy structure instead of inventing it.
+     *
+     * Contract sources:
+     *   - Standard token names: craft/color.md
+     *       (--bg / --surface / --fg / --muted / --border / --accent
+     *        / --success / --warn / --danger)
+     *   - Display-face contract: craft/anti-ai-slop.md
+     *       (--font-display, must be referenced via var())
+     *   - Lint enforcement: apps/daemon/src/lint-artifact.ts
+     *       (raw-hex >12 outside :root → P1; indigo laundering → P0)
+     *
+     * Schema notes (the shared schema grew from kami's stress test —
+     * see design-systems/kami/tokens.css for the rich form, and the
+     * #Gap N tags below for what each addition resolves):
+     *   #Gap 1  — 4-level foreground ramp (fg / fg-2 / muted / meta)
+     *   #Gap 2  — 3-level surface (bg / surface / surface-warm)
+     *   #Gap 3  — 2-level border (border / border-soft)
+     *   #Gap 4  — accent-hover binds to value, not formula
+     *   #Gap 5  — ring elevation as a first-class level (--elev-ring)
+     *
+     * Default doesn't differentiate every level kami needs, so the
+     * shallow tokens (`--fg-2`, `--meta`, `--surface-warm`, `--border-soft`)
+     * collapse to their richer siblings via `var()`. The names still
+     * exist so components can reference them uniformly across brands.
+     *
+     * Keep this file additive: never invent token names not also documented
+     * in DESIGN.md or the craft contracts. New brands cloning this template
+     * should overwrite values, not rename keys.
+     * ─────────────────────────────────────────────────────────────────── */
+
+    :root {
+      /* ─── Surface (3 levels — #Gap 2) ─────────────────────────────────
+       * Per craft/color.md: never pure black, never pure white. Default
+       * uses #FAFAFA for bg and #FFFFFF for surface — the cream-to-white
+       * contrast gives cards lift without a shadow. `--surface-warm` is a
+       * schema slot for brands that need a tertiary tier (kami's warm-sand
+       * button bg); default has no third tier and aliases it to surface. */
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface-warm: var(--surface);   /* alias — default has no warm tier */
+
+      /* ─── Foreground ramp (4 levels — #Gap 1) ───────────────────────
+       * Default differentiates only two text levels (primary + muted).
+       * `--fg-2` and `--meta` are schema slots for brands with richer
+       * ramps (kami uses near-black / dark-warm / olive / stone). They
+       * alias here so components targeting the full ramp resolve. */
+      --fg: #111111;
+      --fg-2: var(--fg);                /* alias — default has no secondary tier */
+      --muted: #6b6b6b;
+      --meta: var(--muted);             /* alias — default has no metadata tier */
+
+      /* ─── Border (2 levels — #Gap 3) ────────────────────────────────
+       * Default has one border weight; `--border-soft` is a schema slot
+       * for brands with row-separator vs card-edge differentiation. */
+      --border: #e5e5e5;
+      --border-soft: var(--border);     /* alias — default has no soft tier */
+
+      /* ─── Accent ──────────────────────────────────────────────────────
+       * Cobalt — primary CTAs, links, ONE hero element per screen.
+       * Hard cap of 2 visible uses per screen is enforced by lint
+       * (`accent-overuse` P1 fires at >6 inline occurrences). */
+      --accent: #2f6feb;
+      --accent-on: #ffffff; /* fg when accent is the bg (e.g. button label) */
+
+      /* ─── Accent states (#Gap 4) ────────────────────────────────────
+       * Hover and active variants for any element using --accent as bg.
+       * Default's mid-luminance cobalt admits a black-mix formula
+       * cleanly; that's a brand-specific binding, NOT a schema rule.
+       * kami binds --accent-hover to var(--accent) (no color shift,
+       * hover via elevation) because ink-blue is too dark for further
+       * darkening to read; other brands with light accents must
+       * hand-pick.
+       *
+       * Schema rule: every brand provides --accent-hover and
+       * --accent-active. The binding strategy (formula / identity /
+       * hand-picked) is brand-decided.
+       *
+       * Why these two are tokens (and other tints stay inline):
+       *   - cross-component (button, chip, tab, dropdown all need them)
+       *   - cross-mode reversal (dark-mode hover should mix white, not
+       *     black — token re-binding is one line per mode)
+       *   - cross-brand customization (formula breaks on light accents)
+       *   - lint-enforceable contract (every brand must provide these)
+       * Other inline `color-mix(...)` calls in components don't yet hit
+       * any of the above — promote them to tokens when a second use
+       * appears. */
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+
+      /* ─── Semantic ────────────────────────────────────────────────────
+       * Reserved for state, not decoration. Keep total semantic-color
+       * pixels under 5% of the surface. */
+      --success: #17a34a;
+      --warn: #eab308;
+      --danger: #dc2626;
+
+      /* ─── Typography ──────────────────────────────────────────────────
+       * Inter for display is the documented "modern minimal" override
+       * to anti-ai-slop's serif-display rule (see DESIGN.md
+       * §Visual Theme & Atmosphere — "Calm, functional, quietly
+       * confident"). Other brands should rebind --font-display to a
+       * serif unless their direction is also tech/utility. */
+      --font-display: "Inter", -apple-system, system-ui, sans-serif;
+      --font-body: "Inter", -apple-system, system-ui, sans-serif;
+      --font-mono: ui-monospace, "JetBrains Mono", monospace;
+
+      /* Type scale (px) — direct copy of DESIGN.md §Typography Rules */
+      --text-xs: 12px;
+      --text-sm: 14px;
+      --text-base: 16px;
+      --text-lg: 20px;
+      --text-xl: 24px;
+      --text-2xl: 32px;
+      --text-3xl: 48px;
+      --text-4xl: 64px;
+
+      --leading-body: 1.5;
+      --leading-tight: 1.2;
+      --tracking-display: -0.01em; /* applied to display sizes ≥32px */
+
+      /* ─── Spacing ─────────────────────────────────────────────────────
+       * 4px base unit. Section rhythm (80/48/32) lives below as named
+       * tokens because DESIGN.md §Layout Principles treats them as
+       * breakpoint-specific decisions, not generic spacing. */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+      --space-20: 80px;
+
+      --section-y-desktop: 80px;
+      --section-y-tablet: 48px;
+      --section-y-phone: 32px;
+
+      /* ─── Radius ──────────────────────────────────────────────────────
+       * Two intents: small (button/input) and medium (card/modal).
+       * `--radius-pill` reserved for chips/avatars; do not use it on
+       * cards or buttons. */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 9999px;
+
+      /* ─── Elevation (3 levels — #Gap 5) ─────────────────────────────
+       * Default uses two levels (flat + raised blur shadow) per its own
+       * DESIGN.md §Depth & Elevation. The schema gains `--elev-ring` as
+       * a first-class level so brands using ring shadows as primary
+       * elevation (kami, paper, editorial) don't need to rebind
+       * --elev-raised away from blur. Default declares all three; ring
+       * is available for hairline edges where a 1px border would shift
+       * layout. No fourth level — that's neumorphism territory. */
+      --elev-flat: none;
+      --elev-ring: 0 0 0 1px var(--border);
+      --elev-raised: 0 2px 8px color-mix(in oklab, var(--fg), transparent 92%);
+
+      /* ─── Focus ring ──────────────────────────────────────────────────
+       * Single source of truth for keyboard-focus indicators. Every
+       * `:focus-visible` rule on buttons, inputs, links, and tabs must
+       * use this token — uniform behavior is itself a brand signal, and
+       * craft/accessibility-baseline.md treats focus visibility as a
+       * non-negotiable. Implemented as a `box-shadow` so it layers
+       * outside the element without affecting layout. */
+      --focus-ring: 0 0 0 3px color-mix(in oklab, var(--accent), transparent 70%);
+
+      /* ─── Motion ──────────────────────────────────────────────────────
+       * Two durations + one easing curve, per anti-ai-slop's "short,
+       * purposeful transitions (150–250ms) with stable easing". Add a
+       * third duration only when a real interaction needs it; do not
+       * invent `--motion-slow` speculatively. */
+      --motion-fast: 150ms;            /* hover, focus, micro-states */
+      --motion-base: 200ms;            /* general state changes */
+      --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+      /* ─── Layout ──────────────────────────────────────────────────────
+       * Container width and per-breakpoint gutter. Skill-side responsive
+       * code reads these to decide grid columns. */
+      --container-max: 1200px;
+      --container-gutter-desktop: 24px;
+      --container-gutter-tablet: 16px;
+      --container-gutter-phone: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      --text-edge: 6vw;
+      --text-edge-max: 96px;
+      --text-lane: 380px;
+      --text-offset: clamp(var(--space-8), var(--text-edge), var(--text-edge-max));
+      margin: 0;
+      min-width: 320px;
+      background: var(--fg);
+      color: var(--surface);
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: var(--leading-body);
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, color-mix(in oklab, var(--fg), transparent 34%) 0%, color-mix(in oklab, var(--fg), transparent 60%) 46%, color-mix(in oklab, var(--fg), transparent 20%) 100%);
+      opacity: .64;
+      z-index: 1;
+    }
+
+    .video-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: var(--fg);
+    }
+
+    .video-stage video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 100vh;
+      min-width: 100%;
+      min-height: 100%;
+      object-fit: cover;
+      transform: translate(-50%, -50%);
+      opacity: .78;
+      filter: saturate(.82) contrast(1.08);
+    }
+
+    body.video-error .video-stage video {
+      opacity: 0;
+    }
+
+    .video-fallback {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 22% 18%, color-mix(in oklab, var(--accent), transparent 72%), transparent 28%),
+        linear-gradient(135deg, color-mix(in oklab, var(--fg), var(--accent) 10%), var(--fg));
+    }
+
+    .video-progress {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 30;
+      width: 100%;
+      height: 1px;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .video-progress span {
+      display: none;
+      width: calc(var(--scroll-progress, 0) * 100%);
+      height: 100%;
+      background: var(--accent);
+      transition: width 80ms linear;
+    }
+
+    .site-mark {
+      position: fixed;
+      top: var(--space-6);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 35;
+      color: color-mix(in oklab, var(--surface), transparent 8%);
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      letter-spacing: 0;
+      line-height: 1;
+      pointer-events: none;
+      text-shadow: 0 1px 18px color-mix(in oklab, var(--fg), transparent 34%);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--accent);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .container {
+      width: min(100% - calc(var(--container-gutter-desktop) * 2), var(--container-max));
+      margin-inline: auto;
+    }
+
+    main .container {
+      width: min(100% - calc(var(--container-gutter-desktop) * 2), var(--text-lane));
+      margin-left: auto;
+      margin-right: var(--text-offset);
+    }
+
+    #works .container,
+    #contact .container {
+      margin-left: auto;
+      margin-right: var(--text-offset);
+    }
+
+    .hero .container,
+    #works .container,
+    #contact .container {
+      text-align: right;
+    }
+
+    .hero .lead,
+    #contact .lead {
+      margin-left: auto;
+    }
+
+    #works .section-head,
+    #contact .cta-band,
+    #works .work-grid {
+      justify-items: end;
+      margin-left: auto;
+    }
+
+    #works .work-toolbar,
+    #contact .input-row {
+      justify-content: flex-end;
+    }
+
+    #services .container,
+    #process .container {
+      margin-left: var(--text-offset);
+      margin-right: auto;
+    }
+
+    .btn {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      border: 1px solid transparent;
+      border-radius: 0;
+      padding: 10px 0;
+      cursor: pointer;
+      transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
+    }
+
+    .btn:hover,
+    .filter:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:focus-visible,
+    a:focus-visible,
+    .filter:focus-visible,
+    input:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: transparent;
+      color: var(--surface);
+      border-bottom-color: transparent;
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: color-mix(in oklab, var(--surface), transparent 18%);
+    }
+
+    .btn-secondary {
+      border-color: transparent;
+      background: transparent;
+      color: var(--surface);
+    }
+
+    .btn-secondary:hover {
+      border-color: transparent;
+      color: var(--accent);
+    }
+
+    .hero {
+      min-height: 100svh;
+      display: grid;
+      align-items: end;
+      padding-block: clamp(120px, 16vw, 220px) var(--space-20);
+      border-top: 0;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 400px);
+      gap: var(--space-5);
+      align-items: start;
+    }
+
+    .hero-copy {
+      grid-column: 1;
+    }
+
+    .eyebrow {
+      display: none;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      color: inherit;
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: var(--leading-tight);
+      letter-spacing: var(--tracking-display);
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 380px;
+      font-size: clamp(var(--text-3xl), 7vw, var(--text-4xl));
+    }
+
+    h2 {
+      max-width: 340px;
+      font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl));
+    }
+
+    h3 {
+      font-size: var(--text-xl);
+    }
+
+    .lead {
+      margin: var(--space-4) 0 var(--space-5);
+      max-width: 260px;
+      color: color-mix(in oklab, var(--surface), transparent 36%);
+      font-size: clamp(var(--text-base), 1.7vw, var(--text-lg));
+    }
+
+    .hero-panel {
+      grid-column: 1;
+      align-self: start;
+      max-width: 520px;
+      display: none;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: var(--space-5);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      padding: 0;
+    }
+
+    .panel-meta {
+      color: color-mix(in oklab, var(--surface), transparent 48%);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+    }
+
+    .metric-row {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+
+    .metric {
+      display: grid;
+      grid-template-columns: 80px minmax(0, 1fr);
+      gap: var(--space-4);
+      border-top: 0;
+      padding-top: 0;
+      color: color-mix(in oklab, var(--surface), transparent 42%);
+      font-size: var(--text-sm);
+    }
+
+    .metric strong {
+      color: var(--surface);
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    main {
+      position: relative;
+      z-index: 5;
+    }
+
+    section {
+      position: relative;
+      z-index: 5;
+      min-height: 100svh;
+      display: grid;
+      align-items: center;
+      padding-block: var(--section-y-desktop);
+      border-top: 0;
+    }
+
+    section .container {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .hero .container {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      backdrop-filter: none;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 380px);
+      gap: var(--space-2);
+      align-items: start;
+      margin-bottom: var(--space-5);
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 380px);
+      gap: var(--space-5);
+    }
+
+    .card {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--surface);
+      padding: 0;
+    }
+
+    .service-card {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-2);
+      align-items: start;
+    }
+
+    .card-index {
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      display: none;
+    }
+
+    .card p {
+      margin: var(--space-2) 0 0;
+      color: color-mix(in oklab, var(--surface), transparent 34%);
+    }
+
+    .tag-list {
+      display: none;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      grid-column: 1;
+      margin-top: calc(var(--space-2) * -1);
+    }
+
+    .tag {
+      border: 0;
+      border-radius: var(--radius-pill);
+      padding: 0;
+      color: color-mix(in oklab, var(--surface), transparent 42%);
+      font-size: var(--text-xs);
+    }
+
+    .work-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+
+    .filter {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: color-mix(in oklab, var(--surface), transparent 42%);
+      min-height: 40px;
+      padding: 8px 0;
+      cursor: pointer;
+      transition: color var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
+    }
+
+    .filter:hover {
+      color: color-mix(in oklab, var(--surface), transparent 12%);
+    }
+
+    .filter:active {
+      transform: translateY(1px);
+    }
+
+    .filter.is-active {
+      color: var(--surface);
+      font-weight: 600;
+    }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 380px);
+      gap: var(--space-5);
+    }
+
+    .work-card {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
+      transition: opacity 150ms cubic-bezier(0.2, 0, 0, 1), transform 150ms cubic-bezier(0.2, 0, 0, 1);
+      will-change: opacity, transform;
+    }
+
+    .work-grid.is-filtering .work-card:not([hidden]) {
+      opacity: 0;
+      transform: translateY(3px);
+    }
+
+    .work-visual {
+      display: none;
+    }
+
+    .work-visual svg {
+      width: min(58%, 220px);
+      height: auto;
+      color: var(--accent);
+    }
+
+    .work-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: 0;
+    }
+
+    #works .work-body {
+      align-items: flex-end;
+    }
+
+    .work-card[hidden] {
+      display: none;
+    }
+
+    .process {
+      display: grid;
+      grid-template-columns: minmax(0, 380px);
+      max-width: 380px;
+      gap: var(--space-5);
+      counter-reset: step;
+    }
+
+    .process-card {
+      position: relative;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-2);
+      align-items: baseline;
+    }
+
+    .process-card::before {
+      counter-increment: step;
+      content: "0" counter(step);
+      display: none;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+    }
+
+    .cta-band {
+      display: grid;
+      grid-template-columns: minmax(0, 380px);
+      gap: var(--space-4);
+      align-items: start;
+      border-radius: 0;
+      background: transparent;
+      border: 0;
+      color: var(--surface);
+      padding: 0;
+    }
+
+    .contact-box {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    #contact .contact-box {
+      justify-items: end;
+    }
+
+    .cta-band .eyebrow,
+    .cta-band .lead {
+      color: color-mix(in oklab, var(--surface), transparent 34%);
+    }
+
+    .input-row {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .input-row input {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      border: 0;
+      border-bottom: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--surface);
+      caret-color: var(--surface);
+      padding: 10px 0;
+    }
+
+    .input-row input::placeholder {
+      color: color-mix(in oklab, var(--surface), transparent 48%);
+    }
+
+    #contact .input-row input {
+      text-align: right;
+    }
+
+    .toast {
+      min-height: 20px;
+      color: var(--success);
+      font-size: var(--text-sm);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translate3d(0, 6px, 0);
+      transition: opacity 280ms cubic-bezier(0.2, 0, 0, 1), transform 320ms cubic-bezier(0.2, 0, 0, 1);
+      transition-delay: var(--reveal-delay, 0ms);
+      will-change: opacity, transform;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      will-change: auto;
+    }
+
+    .service-grid .reveal:nth-child(2),
+    .work-grid .reveal:nth-child(2),
+    .process .reveal:nth-child(2) {
+      --reveal-delay: 50ms;
+    }
+
+    .service-grid .reveal:nth-child(3),
+    .work-grid .reveal:nth-child(3),
+    .process .reveal:nth-child(3) {
+      --reveal-delay: 90ms;
+    }
+
+    .process .reveal:nth-child(4) {
+      --reveal-delay: 120ms;
+    }
+
+    @media (max-width: 1023px) {
+      body {
+        --text-edge: 6vw;
+        --text-edge-max: 48px;
+        --text-lane: 380px;
+      }
+
+      .container {
+        width: min(100% - calc(var(--container-gutter-tablet) * 2), var(--container-max));
+      }
+
+      main .container {
+        width: min(100% - calc(var(--container-gutter-tablet) * 2), var(--text-lane));
+        margin-left: auto;
+        margin-right: var(--text-offset);
+      }
+
+      #works .container,
+      #contact .container {
+        margin-left: auto;
+        margin-right: var(--text-offset);
+      }
+
+      #services .container,
+      #process .container {
+        margin-left: var(--text-offset);
+        margin-right: auto;
+      }
+
+      .hero-grid,
+      .section-head,
+      .cta-band {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy,
+      .hero-panel {
+        grid-column: auto;
+      }
+
+      .service-grid,
+      .work-grid,
+      .process {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding-block: var(--section-y-tablet);
+      }
+    }
+
+    @media (max-width: 639px) {
+      body {
+        --text-lane: 360px;
+      }
+
+      .site-mark {
+        top: var(--space-5);
+        font-size: var(--text-xs);
+      }
+
+      .container {
+        width: min(100% - calc(var(--container-gutter-phone) * 2), var(--container-max));
+      }
+
+      main .container {
+        width: min(100% - calc(var(--container-gutter-phone) * 2), 360px);
+        margin-left: var(--space-5);
+        margin-right: auto;
+      }
+
+      #works .container,
+      #contact .container,
+      #services .container,
+      #process .container {
+        margin-left: var(--space-5);
+        margin-right: auto;
+      }
+
+      .hero .container,
+      #works .container,
+      #contact .container {
+        text-align: left;
+      }
+
+      .hero .lead,
+      #contact .lead,
+      #works .section-head,
+      #contact .cta-band,
+      #works .work-grid {
+        margin-left: 0;
+      }
+
+      #works .section-head,
+      #contact .cta-band,
+      #works .work-grid,
+      #contact .contact-box {
+        justify-items: start;
+      }
+
+      #works .work-toolbar,
+      #contact .input-row {
+        justify-content: flex-start;
+      }
+
+      #works .work-body {
+        align-items: flex-start;
+      }
+
+      #contact .input-row input {
+        text-align: left;
+      }
+
+      .hero {
+        min-height: 100svh;
+        padding-block: 112px var(--space-12);
+      }
+
+      h1 {
+        font-size: clamp(40px, 12vw, var(--text-3xl));
+      }
+
+      .service-grid,
+      .work-grid,
+      .process {
+        grid-template-columns: 1fr;
+      }
+
+      .input-row {
+        flex-direction: column;
+      }
+
+      section {
+        padding-block: var(--section-y-phone);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 1ms !important;
+        animation-duration: 1ms !important;
+      }
+
+      .reveal,
+      .work-grid.is-filtering .work-card:not([hidden]) {
+        opacity: 1 !important;
+        transform: none !important;
+        transition-delay: 0ms !important;
+        will-change: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="video-stage" aria-hidden="true">
+    <div class="video-fallback"></div>
+    <video id="scrollVideo" muted playsinline preload="auto">
+      <source src="assets/hero-video.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="video-progress" aria-hidden="true"><span id="videoProgress"></span></div>
+  <div class="site-mark">Howard</div>
+  <div class="sr-only" id="videoState" role="status" aria-live="polite"></div>
+
+  <main id="top">
+    <section class="hero" data-od-id="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy reveal">
+          <h1>Howard<br>AI 视觉设计师<br>Vibe Coding 策略</h1>
+          <p class="lead">以 AI 工作流，塑造数字视觉表达。</p>
+          <a class="btn btn-primary" href="#works">查看作品 →</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" data-od-id="services">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2>技术驱动创意。<br>视觉重写叙事。</h2>
+          </div>
+        </div>
+        <div class="service-grid">
+          <article class="card service-card reveal">
+            <span class="card-index">01</span>
+            <div>
+              <h3>AI 工作流</h3>
+              <p>将概念转化为可见情绪。</p>
+            </div>
+          </article>
+          <article class="card service-card reveal">
+            <span class="card-index">02</span>
+            <div>
+              <h3>视觉策略</h3>
+              <p>用画面建立品牌识别。</p>
+            </div>
+          </article>
+          <article class="card service-card reveal">
+            <span class="card-index">03</span>
+            <div>
+              <h3>数字资产</h3>
+              <p>从方向到交付保持完成度。</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="works" data-od-id="works">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2>查看作品 →<br>Explore Visual Archive</h2>
+          </div>
+        </div>
+
+        <div class="work-toolbar reveal" role="group" aria-label="作品筛选">
+          <button class="filter is-active" type="button" data-filter="all" aria-pressed="true">全部</button>
+          <button class="filter" type="button" data-filter="brand" aria-pressed="false">品牌展示</button>
+          <button class="filter" type="button" data-filter="service" aria-pressed="false">服务包装</button>
+          <button class="filter" type="button" data-filter="content" aria-pressed="false">内容系统</button>
+        </div>
+
+        <div class="work-grid">
+          <article class="card work-card reveal" data-category="brand">
+            <div class="work-body">
+              <div>
+                <span class="card-index">品牌展示</span>
+                <h3>个人主页叙事</h3>
+              </div>
+            </div>
+          </article>
+          <article class="card work-card reveal" data-category="service">
+            <div class="work-body">
+              <div>
+                <span class="card-index">服务包装</span>
+                <h3>服务能力矩阵</h3>
+              </div>
+            </div>
+          </article>
+          <article class="card work-card reveal" data-category="content">
+            <div class="work-body">
+              <div>
+                <span class="card-index">内容系统</span>
+                <h3>案例内容框架</h3>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="process" data-od-id="process">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2>先锋美学 ×<br>商业逻辑</h2>
+          </div>
+        </div>
+        <div class="process">
+          <article class="card process-card reveal">
+            <h3>极简张力</h3>
+          </article>
+          <article class="card process-card reveal">
+            <h3>粗野边界</h3>
+          </article>
+          <article class="card process-card reveal">
+            <h3>高端叙事</h3>
+          </article>
+          <article class="card process-card reveal">
+            <h3>商业识别</h3>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" data-od-id="contact">
+      <div class="container">
+        <div class="cta-band reveal">
+          <div>
+            <h2>CONNECT /<br>CONTACT</h2>
+            <p class="lead">开启视觉合作。</p>
+          </div>
+          <div class="contact-box">
+            <a class="btn btn-primary" href="#works">查看作品</a>
+            <div class="input-row" aria-label="复制联系邮箱">
+              <input id="contactText" type="text" inputmode="email" autocomplete="email" placeholder="填入真实联系方式后可复制" aria-label="联系邮箱或微信">
+              <button class="btn btn-secondary" type="button" id="copyContact">复制</button>
+            </div>
+            <div class="toast" id="toast" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+    const pageBody = document.body;
+    const scrollVideo = document.querySelector('#scrollVideo');
+    const videoState = document.querySelector('#videoState');
+    const scrubEnd = document.querySelector('#contact');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let videoReady = false;
+    let ticking = false;
+    let lastVideoTime = -1;
+
+    function updateVideoScrub() {
+      ticking = false;
+      const endRect = scrubEnd?.getBoundingClientRect();
+      const absoluteEnd = endRect ? window.scrollY + endRect.top : document.body.scrollHeight;
+      const stopScroll = Math.max(1, absoluteEnd - window.innerHeight * 0.2);
+      const progress = Math.max(0, Math.min(1, window.scrollY / stopScroll));
+      root.style.setProperty('--scroll-progress', progress.toFixed(4));
+
+      if (!scrollVideo || reduceMotion.matches || !videoReady || !scrollVideo.duration || scrollVideo.seeking) return;
+      const nextTime = progress * scrollVideo.duration;
+      if (Math.abs(nextTime - lastVideoTime) < 0.035) return;
+      lastVideoTime = nextTime;
+      scrollVideo.currentTime = nextTime;
+    }
+
+    function requestScrub() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateVideoScrub);
+    }
+
+    function markVideoReady() {
+      videoReady = true;
+      pageBody.classList.add('video-ready');
+      pageBody.classList.remove('video-error');
+      if (videoState) videoState.textContent = '背景视频已就绪';
+      updateVideoScrub();
+    }
+
+    scrollVideo?.addEventListener('loadedmetadata', markVideoReady);
+    scrollVideo?.addEventListener('canplaythrough', markVideoReady);
+    scrollVideo?.addEventListener('error', () => {
+      videoReady = false;
+      pageBody.classList.add('video-error');
+      if (videoState) videoState.textContent = '背景视频加载失败，已使用备用背景';
+    });
+
+    window.addEventListener('scroll', requestScrub, { passive: true });
+    window.addEventListener('resize', requestScrub);
+    scrollVideo?.load();
+    updateVideoScrub();
+
+    const savedPositionDefaults = {
+      edge: 6,
+      lane: 380
+    };
+
+    function readSavedPosition() {
+      try {
+        return JSON.parse(localStorage.getItem('personalSiteTextPosition')) || savedPositionDefaults;
+      } catch {
+        return savedPositionDefaults;
+      }
+    }
+
+    function applySavedPosition(state) {
+      const edge = Number(state.edge ?? savedPositionDefaults.edge);
+      const lane = Number(state.lane ?? savedPositionDefaults.lane);
+      pageBody.style.setProperty('--text-edge', `${edge}vw`);
+      pageBody.style.setProperty('--text-lane', `${lane}px`);
+    }
+
+    applySavedPosition(readSavedPosition());
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.16 });
+
+    document.querySelectorAll('.reveal').forEach((item) => revealObserver.observe(item));
+
+    const filters = Array.from(document.querySelectorAll('.filter'));
+    const workCards = Array.from(document.querySelectorAll('.work-card'));
+    const workGrid = document.querySelector('.work-grid');
+    let filterTimer = 0;
+
+    filters.forEach((filter) => {
+      filter.addEventListener('click', () => {
+        const target = filter.dataset.filter;
+        window.clearTimeout(filterTimer);
+        filters.forEach((item) => {
+          const active = item === filter;
+          item.classList.toggle('is-active', active);
+          item.setAttribute('aria-pressed', String(active));
+        });
+
+        const applyFilter = () => {
+          workCards.forEach((card) => {
+            card.hidden = target !== 'all' && card.dataset.category !== target;
+          });
+          if (toast) {
+            const activeCount = workCards.filter((card) => !card.hidden).length;
+            toast.textContent = `已显示 ${activeCount} 个作品分类`;
+            window.setTimeout(() => {
+              toast.textContent = '';
+            }, 1200);
+          }
+        };
+
+        if (reduceMotion.matches || !workGrid) {
+          applyFilter();
+          return;
+        }
+
+        workGrid.classList.add('is-filtering');
+        filterTimer = window.setTimeout(() => {
+          applyFilter();
+          window.requestAnimationFrame(() => {
+            workGrid.classList.remove('is-filtering');
+          });
+        }, 130);
+      });
+    });
+
+    const copyButton = document.querySelector('#copyContact');
+    const contactText = document.querySelector('#contactText');
+    const toast = document.querySelector('#toast');
+
+    copyButton?.addEventListener('click', async () => {
+      const value = contactText.value.trim();
+      if (!value) {
+        toast.textContent = '请先填入真实联系方式';
+        window.setTimeout(() => {
+          toast.textContent = '';
+        }, 1800);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(value);
+        toast.textContent = '已复制联系方式';
+      } catch {
+        contactText.select();
+        document.execCommand('copy');
+        toast.textContent = '已复制联系方式';
+      }
+      window.setTimeout(() => {
+        toast.textContent = '';
+      }, 1800);
+    });
+  </script>
+</body>
+</html>
