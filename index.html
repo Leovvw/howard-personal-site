@@ -974,7 +974,7 @@
 <body>
   <div class="video-stage" aria-hidden="true">
     <div class="video-fallback"></div>
-    <video id="scrollVideo" muted playsinline webkit-playsinline preload="auto">
+    <video id="scrollVideo" muted playsinline preload="auto">
       <source src="assets/hero-video.mp4" type="video/mp4">
     </video>
   </div>
@@ -1124,8 +1124,6 @@
     let videoReady = false;
     let ticking = false;
     let lastVideoTime = -1;
-    let pendingVideoTime = null;
-    const endFramePadding = 0.08;
 
     function updateVideoScrub() {
       ticking = false;
@@ -1135,19 +1133,9 @@
       const progress = Math.max(0, Math.min(1, window.scrollY / stopScroll));
       root.style.setProperty('--scroll-progress', progress.toFixed(4));
 
-      if (!scrollVideo || reduceMotion.matches || !videoReady || !scrollVideo.duration) return;
-      const scrubDuration = Math.max(0, scrollVideo.duration - endFramePadding);
-      const nextTime = progress * scrubDuration;
+      if (!scrollVideo || reduceMotion.matches || !videoReady || !scrollVideo.duration || scrollVideo.seeking) return;
+      const nextTime = progress * scrollVideo.duration;
       if (Math.abs(nextTime - lastVideoTime) < 0.035) return;
-      pendingVideoTime = nextTime;
-      if (scrollVideo.seeking) return;
-      applyPendingVideoTime();
-    }
-
-    function applyPendingVideoTime() {
-      if (!scrollVideo || pendingVideoTime === null) return;
-      const nextTime = pendingVideoTime;
-      pendingVideoTime = null;
       lastVideoTime = nextTime;
       scrollVideo.currentTime = nextTime;
     }
@@ -1166,21 +1154,8 @@
       updateVideoScrub();
     }
 
-    async function primeScrollVideo() {
-      if (!scrollVideo || reduceMotion.matches) return;
-      try {
-        await scrollVideo.play();
-        scrollVideo.pause();
-        updateVideoScrub();
-      } catch {
-        updateVideoScrub();
-      }
-    }
-
     scrollVideo?.addEventListener('loadedmetadata', markVideoReady);
-    scrollVideo?.addEventListener('loadeddata', markVideoReady);
     scrollVideo?.addEventListener('canplaythrough', markVideoReady);
-    scrollVideo?.addEventListener('seeked', applyPendingVideoTime);
     scrollVideo?.addEventListener('error', () => {
       videoReady = false;
       pageBody.classList.add('video-error');
@@ -1189,10 +1164,7 @@
 
     window.addEventListener('scroll', requestScrub, { passive: true });
     window.addEventListener('resize', requestScrub);
-    window.addEventListener('pointerdown', primeScrollVideo, { once: true, passive: true });
-    window.addEventListener('touchstart', primeScrollVideo, { once: true, passive: true });
     scrollVideo?.load();
-    primeScrollVideo();
     updateVideoScrub();
 
     const savedPositionDefaults = {
